@@ -30,7 +30,7 @@ ScholarGuru is an AI-powered education and scholarship assistance platform desig
 
 1. Clone the repository
    
-   git clone https://github.com/your-username/scholarguru.git
+   git clone https://github.com/mitarthpathak/scholarguru.git
 2. Navigate to the project directory
    
    cd scholarguru
