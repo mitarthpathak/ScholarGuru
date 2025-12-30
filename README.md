@@ -17,9 +17,9 @@ ScholarGuru is an AI-powered education and scholarship assistance platform desig
 ## 🛠️ Tech Stack
 
 - **Frontend:** React / HTML / CSS / JavaScript  
-- **Backend:** Node.js / Express *(if applicable)*  
+- **Backend:** Node.js   
 - **AI Model:** OpenAI / Custom AI Logic  
-- **Database:** MongoDB / Firebase *(optional)*  
+- **Database:** MongoDB / Firebase 
 
 ---
 
