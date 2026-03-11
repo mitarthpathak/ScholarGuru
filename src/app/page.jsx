@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { authService } from "@/utils/authService";
 
 export default function HomePage() {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
@@ -9,11 +10,31 @@ export default function HomePage() {
   const [showSignIn, setShowSignIn] = useState(false);
   const [showGetStarted, setShowGetStarted] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showSignInRequired, setShowSignInRequired] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [signInEmail, setSignInEmail] = useState("");
+  const [signInPassword, setSignInPassword] = useState("");
+  const [signUpError, setSignUpError] = useState("");
+  const [signInError, setSignInError] = useState("");
+
+  const { user, isLoggedIn, signIn, signOut } = useAuth();
+
+  const handleStartConsultation = () => {
+    if (isLoggedIn) {
+      window.location.href = '/chat';
+    } else {
+      setShowSignInRequired(true);
+    }
+  };
 
   const scrollToServices = (e) => {
     e.preventDefault();
@@ -21,16 +42,83 @@ export default function HomePage() {
     servicesSection?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const scrollToTop = (e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleGetStartedSubmit = (e) => {
     e.preventDefault();
+    setSignUpError("");
+
+    // Validate password
+    if (!password || password.trim().length < 6) {
+      setSignUpError("Password must be at least 6 characters long");
+      return;
+    }
+
+    const newUser = {
+      fullName,
+      username,
+      email,
+      age,
+      phone,
+    };
+
+    // Register the user
+    const result = authService.register(email, password, newUser);
+
+    if (!result.success) {
+      setSignUpError(result.error);
+      return;
+    }
+
+    // Sign in the user
+    signIn(result.user);
     setShowGetStarted(false);
-    window.open("/chat", "_blank");
+    // Reset form fields
+    setFullName("");
+    setUsername("");
+    setEmail("");
+    setAge("");
+    setPhone("");
+    setPassword("");
+    // Navigate to chat
+    window.location.href = "/chat";
   };
 
   const handleSignInSubmit = (e) => {
     e.preventDefault();
+    setSignInError("");
+
+    if (!signInEmail || !signInPassword) {
+      setSignInError("Please enter email and password");
+      return;
+    }
+
+    // Try to sign in with credentials
+    const result = authService.signInWithCredentials(signInEmail, signInPassword);
+
+    if (!result.success) {
+      setSignInError(result.error);
+      return;
+    }
+
+    // Sign in successful
+    signIn(result.user);
     setShowSignIn(false);
-    alert("Sign in functionality coming soon!");
+    setSignInEmail("");
+    setSignInPassword("");
+  };
+
+  const handleSignOut = () => {
+    setShowUserProfile(false);
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmSignOut = () => {
+    signOut();
+    setShowLogoutConfirm(false);
   };
 
   const services = [
@@ -123,18 +211,75 @@ export default function HomePage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowSignIn(true)}
-              className="px-5 py-2 text-sm text-gray-300 hover:text-white hover:bg-blue-600/20 rounded-lg transition-all duration-300 border border-transparent hover:border-blue-500/50"
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => setShowGetStarted(true)}
-              className="px-5 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:scale-105"
-            >
-              Get Started
-            </button>
+            {isLoggedIn && user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserProfile(!showUserProfile)}
+                  className="px-5 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-lg shadow-green-500/50 hover:shadow-green-500/70 hover:scale-105 flex items-center gap-2"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {user.fullName || user.username}
+                </button>
+
+                {showUserProfile && (
+                  <div className="absolute right-0 top-12 bg-gradient-to-br from-gray-900 to-blue-950 border border-blue-500/30 rounded-lg p-4 shadow-xl shadow-blue-500/20 z-50 min-w-64">
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-400">Signed in as</p>
+                      <p className="text-white font-semibold">{user.fullName || user.username}</p>
+                      <p className="text-sm text-gray-400">{user.email}</p>
+                      {user.age && (
+                        <p className="text-sm text-gray-400">Age: {user.age}</p>
+                      )}
+                      {user.phone && (
+                        <p className="text-sm text-gray-400">Phone: {user.phone}</p>
+                      )}
+                    </div>
+                    <div className="border-t border-blue-500/30 pt-3 space-y-2">
+                      <button
+                        onClick={() => {
+                          setShowUserProfile(false);
+                          window.location.href = "/chat";
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-blue-500/20 rounded transition-colors"
+                      >
+                        Go to Chat
+                      </button>
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/20 rounded transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => setShowSignIn(true)}
+                  className="px-5 py-2 text-sm text-gray-300 hover:text-white hover:bg-blue-600/20 rounded-lg transition-all duration-300 border border-transparent hover:border-blue-500/50"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => setShowGetStarted(true)}
+                  className="px-5 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:scale-105"
+                >
+                  Get Started
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -169,7 +314,7 @@ export default function HomePage() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
               <button
-                onClick={() => window.location.href = '/chat'}
+                onClick={handleStartConsultation}
                 className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-base font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:scale-105"
               >
                 Start Free Consultation
@@ -341,23 +486,19 @@ export default function HomePage() {
                 <li>
                   <a
                     href="/"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.location.reload();
-                    }}
+                    onClick={scrollToTop}
                     className="hover:text-blue-400 transition-colors duration-300"
                   >
                     Home
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="#services"
-                    onClick={scrollToServices}
+                  <button
+                    onClick={() => setShowServiceModal(services[0])}
                     className="hover:text-blue-400 transition-colors duration-300"
                   >
                     Services
-                  </a>
+                  </button>
                 </li>
                 <li>
                   <button
@@ -374,28 +515,28 @@ export default function HomePage() {
               <h4 className="font-semibold text-white mb-3">Support</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <a
-                    href="#help"
+                  <button
+                    onClick={() => setShowHowItWorks(true)}
                     className="hover:text-blue-400 transition-colors duration-300"
                   >
                     Help Center
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a
-                    href="#privacy"
+                  <button
+                    onClick={() => setShowPrivacyPolicy(true)}
                     className="hover:text-blue-400 transition-colors duration-300"
                   >
                     Privacy Policy
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a
-                    href="#terms"
+                  <button
+                    onClick={() => setShowTermsOfService(true)}
                     className="hover:text-blue-400 transition-colors duration-300"
                   >
                     Terms of Service
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -405,18 +546,18 @@ export default function HomePage() {
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
                   <a
-                    href="mailto:support@sagacity.gov.in"
+                    href="mailto:mpathak6207@gmail.com"
                     className="hover:text-blue-400 transition-colors duration-300"
                   >
-                    support@sagacity.gov.in
+                    mpathak6207@gmail.com
                   </a>
                 </li>
                 <li>
                   <a
-                    href="tel:1800-XXX-XXXX"
+                    href="tel:9587507407"
                     className="hover:text-blue-400 transition-colors duration-300"
                   >
-                    1800-XXX-XXXX
+                    9587507407
                   </a>
                 </li>
               </ul>
@@ -898,6 +1039,541 @@ export default function HomePage() {
                 className="px-6 py-3 bg-gray-800/50 text-white font-semibold rounded-lg hover:bg-gray-700/50 transition-all duration-300 border border-blue-500/30 hover:border-blue-500/50"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sign In Modal */}
+      {showSignIn && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowSignIn(false)}
+        >
+          <div
+            className="bg-gradient-to-br from-gray-900 to-blue-950 border border-blue-500/30 rounded-2xl max-w-md w-full p-8 shadow-2xl shadow-blue-500/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-white">Sign In</h3>
+              <button
+                onClick={() => {
+                  setShowSignIn(false);
+                  setSignInError("");
+                }}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {signInError && (
+              <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
+                <p className="text-sm text-red-300">{signInError}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSignInSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={signInEmail}
+                  onChange={(e) => {
+                    setSignInEmail(e.target.value);
+                    setSignInError("");
+                  }}
+                  required
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="your.email@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={signInPassword}
+                  onChange={(e) => {
+                    setSignInPassword(e.target.value);
+                    setSignInError("");
+                  }}
+                  required
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter your password"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:scale-105"
+              >
+                Sign In
+              </button>
+
+              <p className="text-sm text-gray-400 text-center">
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSignIn(false);
+                    setShowGetStarted(true);
+                    setSignInError("");
+                  }}
+                  className="text-blue-400 hover:text-blue-300"
+                >
+                  Sign up
+                </button>
+              </p>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Get Started (Sign Up) Modal */}
+      {showGetStarted && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowGetStarted(false)}
+        >
+          <div
+            className="bg-gradient-to-br from-gray-900 to-blue-950 border border-blue-500/30 rounded-2xl max-w-5xl w-full p-8 shadow-2xl shadow-blue-500/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-white">
+                Get Started with Sagacity
+              </h3>
+              <button
+                onClick={() => {
+                  setShowGetStarted(false);
+                  setSignUpError("");
+                }}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {signUpError && (
+              <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
+                <p className="text-sm text-red-300">{signUpError}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleGetStartedSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => {
+                      setFullName(e.target.value);
+                      setSignUpError("");
+                    }}
+                    required
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="John Doe"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Username *
+                  </label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setSignUpError("");
+                    }}
+                    required
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="johndoe123"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Age *
+                  </label>
+                  <input
+                    type="number"
+                    value={age}
+                    onChange={(e) => {
+                      setAge(e.target.value);
+                      setSignUpError("");
+                    }}
+                    required
+                    min="1"
+                    max="120"
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="25"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      setSignUpError("");
+                    }}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="+91 98765 43210"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setSignUpError("");
+                  }}
+                  required
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="your.email@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Password *
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setSignUpError("");
+                  }}
+                  required
+                  minLength="6"
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Create a strong password"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:scale-105"
+              >
+                Create Account
+              </button>
+
+              <p className="text-sm text-gray-400 text-center">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowGetStarted(false);
+                    setShowSignIn(true);
+                    setSignUpError("");
+                  }}
+                  className="text-blue-400 hover:text-blue-300"
+                >
+                  Sign in
+                </button>
+              </p>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowLogoutConfirm(false)}
+        >
+          <div
+            className="bg-gradient-to-br from-gray-900 to-blue-950 border border-blue-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl shadow-blue-500/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="w-6 h-6 text-red-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Are you sure?
+              </h3>
+              <p className="text-gray-400">
+                Do you really want to sign out? You'll need to sign in again to access your chats.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 px-4 py-2 bg-gray-800/50 text-white font-semibold rounded-lg hover:bg-gray-700/50 transition-all duration-300 border border-blue-500/30 hover:border-blue-500/50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmSignOut}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-lg shadow-red-500/50 hover:shadow-red-500/70 hover:scale-105"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sign In Required Modal */}
+      {showSignInRequired && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowSignInRequired(false)}
+        >
+          <div
+            className="bg-gradient-to-br from-gray-900 to-blue-950 border border-blue-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl shadow-blue-500/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="w-6 h-6 text-blue-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Sign In Required
+              </h3>
+              <p className="text-gray-400">
+                Please sign in first to use the chatbot and start your free consultation.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSignInRequired(false)}
+                className="flex-1 px-4 py-2 bg-gray-800/50 text-white font-semibold rounded-lg hover:bg-gray-700/50 transition-all duration-300 border border-blue-500/30 hover:border-blue-500/50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowSignInRequired(false);
+                  setShowSignIn(true);
+                }}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:scale-105"
+              >
+                Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Privacy Policy Modal */}
+      {showPrivacyPolicy && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowPrivacyPolicy(false)}
+        >
+          <div
+            className="bg-gradient-to-br from-gray-900 to-blue-950 border border-blue-500/30 rounded-2xl max-w-2xl w-full p-6 shadow-2xl shadow-blue-500/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-white">
+                Privacy Policy
+              </h3>
+              <button
+                onClick={() => setShowPrivacyPolicy(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="text-gray-300 space-y-4 max-h-96 overflow-y-auto pr-2">
+              <h4 className="text-lg font-semibold text-white mb-3">Information We Collect</h4>
+              <p className="text-sm leading-relaxed">
+                We collect information you provide directly to us, such as when you create an account, 
+                use our chat services, or contact us for support. This includes your name, email address, 
+                age, and other information you choose to provide.
+              </p>
+
+              <h4 className="text-lg font-semibold text-white mb-3">How We Use Your Information</h4>
+              <p className="text-sm leading-relaxed">
+                We use the information we collect to provide, maintain, and improve our services, including:
+                • Personalizing your experience<br/>
+                • Communicating with you<br/>
+                • Analyzing usage patterns<br/>
+                • Providing customer support
+              </p>
+
+              <h4 className="text-lg font-semibold text-white mb-3">Information Sharing</h4>
+              <p className="text-sm leading-relaxed">
+                We do not sell, trade, or otherwise transfer your personal information to third parties 
+                without your consent, except as described in this policy.
+              </p>
+
+              <h4 className="text-lg font-semibold text-white mb-3">Data Security</h4>
+              <p className="text-sm leading-relaxed">
+                We implement appropriate security measures to protect your personal information against unauthorized 
+                access, alteration, disclosure, or destruction.
+              </p>
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setShowPrivacyPolicy(false)}
+                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:scale-105"
+              >
+                I Understand
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Terms of Service Modal */}
+      {showTermsOfService && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowTermsOfService(false)}
+        >
+          <div
+            className="bg-gradient-to-br from-gray-900 to-blue-950 border border-blue-500/30 rounded-2xl max-w-2xl w-full p-6 shadow-2xl shadow-blue-500/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-white">
+                Terms of Service
+              </h3>
+              <button
+                onClick={() => setShowTermsOfService(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="text-gray-300 space-y-4 max-h-96 overflow-y-auto pr-2">
+              <h4 className="text-lg font-semibold text-white mb-3">Acceptance of Terms</h4>
+              <p className="text-sm leading-relaxed">
+                By accessing and using Sagacity AI Health Assistant, you accept and agree to be bound 
+                by the terms and provision of this agreement.
+              </p>
+
+              <h4 className="text-lg font-semibold text-white mb-3">Use of Service</h4>
+              <p className="text-sm leading-relaxed">
+                Our service provides AI-powered health information and guidance. This is not a substitute 
+                for professional medical advice, diagnosis, or treatment.
+              </p>
+
+              <h4 className="text-lg font-semibold text-white mb-3">User Responsibilities</h4>
+              <p className="text-sm leading-relaxed">
+                You are responsible for maintaining the confidentiality of your account credentials and for 
+                all activities that occur under your account.
+              </p>
+
+              <h4 className="text-lg font-semibold text-white mb-3">Medical Disclaimer</h4>
+              <p className="text-sm leading-relaxed">
+                The information provided is for educational purposes only and should not be used as 
+                a substitute for professional medical advice, diagnosis, or treatment.
+              </p>
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setShowTermsOfService(false)}
+                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:scale-105"
+              >
+                I Agree
               </button>
             </div>
           </div>
