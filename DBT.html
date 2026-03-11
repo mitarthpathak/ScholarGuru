@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        /* Header Styles - Modified as requested */
+        .header {
+            background-color: #fff;
+            border-bottom: 2px solid #1a5276;
+            padding: 10px 20px;
+        }
+        
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+        
+        .gov-india {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1a5276;
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .nav-links a:hover {
+            color: #1a5276;
+        }
+        
+        .latest-announcement {
+            background-color: #e8f4fc;
+            padding: 10px 15px;
+            margin-top: 10px;
+            border-left: 4px solid #1a5276;
+            font-size: 14px;
+        }
+        
+        /* Main Content Layout */
+        .container {
+            display: flex;
+            max-width: 1200px;
+            margin: 20px auto;
+            gap: 20px;
+        }
+        
+        /* Left Side - Dropdown Menus */
+        .left-panel {
+            flex: 1;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        .dropdown {
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .dropdown-header {
+            background-color: #1a5276;
+            color: white;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dropdown-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .dropdown.active .dropdown-content {
+            max-height: 500px;
+            padding: 15px;
+        }
+        
+        .dropdown-content p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .dropdown-content ul {
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .dropdown-content li {
+            margin-bottom: 5px;
+        }
+        
+        /* Right Side - Placeholder for Images */
+        .right-panel {
+            flex: 1;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            min-height: 500px;
+        }
+        
+        .placeholder-image {
+            width: 80%;
+            height: 200px;
+            background-color: #e8f4fc;
+            border: 2px dashed #1a5276;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a5276;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: #1a5276;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        /* ScholarGuru Icon */
+        .scholar-icon {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a5276;
+            display: flex;
+            align-items: center;
+        }
+        
+        .scholar-icon::before {
+            content: "🎓";
+            margin-right: 8px;
+            font-size: 28px;
+        }
+
+        /* Add this at the end for mobile dropdown scroll */
+        @media (max-width: 600px) {
+            .dropdown-content {
+                max-height: 220px !important;
+                overflow-y: auto !important;
+                /* height:auto will be handled by scroll, so content is scrollable */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header - Modified as requested -->
+    <header class="header">
+        <div class="top-header">
+            <div class="scholar-icon"><img src="img/scholar gurur logo.png" width="210" height="60" alt="ScholarGuru"></div>
+            <div class="gov-india"><h1>DBT</h1></div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="aboutus.html">AboutUs</a>
+                <a href="DBT.html">DBT</a>
+            </div>
+        </div>
+        <marquee behavior="" direction="">
+        <span>  << Description About "Atal Bihari Vajpayee General Scholarship Scheme (A1201)." >> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  << Description of Announcement of ICCR’s Scholarship Scheme for Academic Year 2025-26.>> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<< Description of Latest Updates 2 goes here.>></span>
+      </marquee>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" class="container">
+        <!-- Left Panel - Dropdown Menus -->
+        <div class="left-panel">
+            <div class="dropdown active">
+                <div class="dropdown-header">
+                    What is DBT?
+                    <span>▼</span>
+                </div>
+                <div class="dropdown-content">
+                    <p>DBT (Direct Benefit Transfer) is a Government of India initiative that aims to transfer subsidies and benefits directly to the bank accounts of beneficiaries. This system eliminates intermediaries and ensures that financial assistance reaches the intended recipients without delay or leakage.</p>
+                    <p>For SC/ST students, DBT is particularly important as it ensures that scholarship funds and other educational benefits are transferred directly to their bank accounts, making the process transparent and efficient.</p>
+                    <p>The DBT system has been instrumental in improving the delivery of various government schemes, especially those targeted at marginalized communities.</p>
+                </div>
+            </div>
+            
+            <div class="dropdown">
+                <div class="dropdown-header">
+                    Why is DBT Important?
+                    <span>▼</span>
+                </div>
+                <div class="dropdown-content">
+                    <p>DBT is crucial for several reasons:</p>
+                    <ul>
+                        <li><strong>Transparency:</strong> Every transaction is recorded and can be tracked, reducing corruption</li>
+                        <li><strong>Efficiency:</strong> Funds reach beneficiaries faster without unnecessary delays</li>
+                        <li><strong>Financial Inclusion:</strong> Encourages bank account ownership, especially in rural areas</li>
+                        <li><strong>Targeted Delivery:</strong> Ensures benefits reach the intended recipients</li>
+                    </ul>
+                    <p>For SC/ST students, DBT has revolutionized access to educational scholarships. Previously, many students faced challenges in receiving their scholarship amounts due to bureaucratic hurdles. With DBT, the funds are transferred directly to their bank accounts, ensuring timely receipt of financial assistance.</p>
+                </div>
+            </div>
+            
+            <div class="dropdown">
+                <div class="dropdown-header">
+                    How to Enable DBT?
+                    <span>▼</span>
+                </div>
+                <div class="dropdown-content">
+                    <p>To enable DBT for scholarships and other benefits, follow these steps:</p>
+                    
+                        <li>Ensure you have a bank account in your name</li>
+                        <li>Link your Aadhaar card with your bank account</li>
+                        <li>Register for the specific scholarship or scheme through the official portal</li>
+                        <li>Provide correct bank account details during registration</li>
+                        <li>Complete any required verification process</li>
+                    <p>For SC/ST students, additional steps may include:</p>
+                        <ul>
+                            <li>Submitting caste certificate for verification</li>
+                            <li>Providing income certificate if applicable</li>
+                            <li>Completing educational institution verification</li>
+                        </ul>
+                    <p>It's important to keep your bank account active and ensure that your Aadhaar details are updated to avoid any disruption in DBT payments.</p>
+                </div>
+            </div>
+            
+            <div class="dropdown">
+                <div class="dropdown-header">
+                    How to Check if DBT is Enabled?
+                    <span>▼</span>
+                </div>
+                <div class="dropdown-content">
+                    <p>You can check if DBT is enabled for your benefits through these methods:</p>
+                    <ul>
+                        <li><strong>Online Portal:</strong> Visit the official scholarship portal and check your application status</li>
+                        <li><strong>Bank Statement:</strong> Regularly check your bank account for DBT transactions</li>
+                        <li><strong>Mobile Alerts:</strong> Ensure you receive SMS alerts for transactions in your bank account</li>
+                        <li><strong>Helpline:</strong> Contact the scholarship helpline for status updates</li>
+                    </ul>
+                    <p>For SC/ST students, if you're not receiving DBT payments despite being eligible:</p>
+                    <ol>
+                        <li>Verify your application status on the National Scholarship Portal</li>
+                        <li>Check if your bank account is linked with Aadhaar</li>
+                        <li>Contact your educational institution's scholarship cell</li>
+                        <li>Reach out to the district welfare office for assistance</li>
+                    </ol>
+                    <p>Remember to keep your contact details updated on all platforms to receive timely notifications about your DBT status.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Panel - Placeholder Images -->
+        <div class="right-panel">
+            <div class="placeholder-image"><img src="img/ABout.jpg" width="750" height="750"></img></div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Government of India DBT Information Portal</p>
+        <p>Designed by ScholarGuru Team</p>
+    </footer>
+
+    <script>
+        // Dropdown functionality
+        document.querySelectorAll('.dropdown-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const dropdown = header.parentElement;
+                dropdown.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>
